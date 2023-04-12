@@ -3,15 +3,6 @@ from fastapi import Body, FastAPI, Response, status, HTTPException, Depends, API
 from ..database import get_db
 from sqlalchemy.orm import Session
 
-router = APIRouter(prefix="/test", tags=["test"])
-
-
-@router.get("/")
-def testing(item: dict, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
-    new_new = update_spent_amount(
-        current_user.id, item.get('nesto'), db)
-    return new_new
-
 
 def current_amount_spent_group(id: int, group: int, db, mode) -> float:
     if mode == 'personal':
@@ -30,7 +21,7 @@ def current_amount_spent_group(id: int, group: int, db, mode) -> float:
 def update_spent_amount(id: int, group: int, db):
     new_spent_calc = current_amount_spent_group(id, group, db, 'personal')
     old_spent = db.query(models.ExpensesGroupMembers).filter(
-        models.ExpensesGroupMembers.owner_id == id, models.ExpensesGroupMembers.expenses_group_id == group)
+        models.ExpensesGroupMembers.user_id == id, models.ExpensesGroupMembers.expenses_group_id == group)
     dict = {"spent": new_spent_calc}
     old_spent.update(dict)
     db.commit()

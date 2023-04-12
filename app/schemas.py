@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel, EmailStr, conint
+from pydantic import BaseModel, EmailStr, conint, Field
 from xmlrpc.client import boolean
 from datetime import date, datetime
 
@@ -11,6 +11,8 @@ class SingleItem(BaseModel):
     description: Optional[str] = None
     amount: float
     expenses_group_id: int
+    payment_module: str
+    payment_user_id: int
 
 
 class User(BaseModel):
@@ -25,6 +27,7 @@ class UserOut(BaseModel):
     surname: str
     id: int
     email: EmailStr
+    member: Optional[boolean] = None
 
     class Config:
         orm_mode = True
@@ -49,10 +52,15 @@ class CreateExpensesGroup(BaseModel):
 
 
 class AddMemberExpensesGroup(BaseModel):
-    owner_id: int
+    user_id: int
     expenses_group_id: int
     spent: int = 0
     real_expense: int = 0
+
+
+class DeleteMemberExpenseGroup(BaseModel):
+    user_id: int
+    expenses_group_id: int
 
 
 class NewGroupOut(BaseModel):

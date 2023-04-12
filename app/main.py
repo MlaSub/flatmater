@@ -18,7 +18,7 @@ app.add_middleware(
 )
 
 
-app.include_router(calculation_expenses_per_group_per_member.router)
+# app.include_router(calculation_expenses_per_group_per_member.router)
 app.include_router(expenses.router)
 app.include_router(expenses_group.router)
 app.include_router(users.router)

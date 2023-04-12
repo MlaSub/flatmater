@@ -3,7 +3,7 @@ from .. import models, schemas, oauth2
 from fastapi import Body, FastAPI, Response, status, HTTPException, Depends, APIRouter
 from ..database import get_db
 from sqlalchemy.orm import Session
-from ..services import calculation_expenses_per_group_per_member
+from ..services import calculation_expenses_per_group_per_member, divisioning
 
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
@@ -12,15 +12,36 @@ router = APIRouter(prefix="/expenses", tags=["expenses"])
 @router.post("/items", status_code=status.HTTP_201_CREATED)
 def creat_item(item: schemas.SingleItem, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     new_item = models.Expense(
-        owner_id=current_user.id, **item.dict())
+        owner_id=current_user.id, name=item.name, amount=item.amount, payment_module=item.payment_module, description=item.description, expenses_group_id=item.expenses_group_id)
     db.add(new_item)
     db.commit()
     db.refresh(new_item)
     new_item_id = {'id': new_item.id}
+    paying_user = None
+    if item.payment_module == 'self':
+        paying_user = current_user.id
+        divisioning.payment_dividing(
+            item.amount, paying_user, db, new_item.id)
+
+        divisioning.equal_cost_dividing(
+            item.amount, item.expenses_group_id, db, new_item.id, "self", paying_user)
+
+    elif item.payment_module == 'equal' or 'someone':
+        paying_user = item.payment_user_id
+        divisioning.payment_dividing(
+            item.amount, paying_user, db, new_item.id)
+
+        divisioning.equal_cost_dividing(
+            item.amount, item.expenses_group_id, db, new_item.id, "equalsomeone", paying_user)
+
+    elif item.payment_module == 'unequal':
+        # do this later
+        paying_user = None
     calculation_expenses_per_group_per_member.update_spent_amount(
         current_user.id, item.expenses_group_id, db)
     calculation_expenses_per_group_per_member.calculate_total_amount_group(
         current_user.id, item.expenses_group_id, db)
+
     return new_item_id
 
 

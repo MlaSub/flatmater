@@ -12,7 +12,7 @@ def get_overview_expenses(filter: dict, db: Session = Depends(get_db), current_u
     group_total_amount = db.query(models.ExpensesGroup).filter(
         models.ExpensesGroup.id == group_id).first()
     personal_total = db.query(models.ExpensesGroupMembers).filter(
-        models.ExpensesGroupMembers.expenses_group_id == group_id, models.ExpensesGroupMembers.owner_id == current_user.id).first()
+        models.ExpensesGroupMembers.expenses_group_id == group_id, models.ExpensesGroupMembers.user_id == current_user.id).first()
     personal_total_round = round(personal_total.spent, 2)
     group_total_amount_round = round(group_total_amount.total_amount, 2)
     data = {
