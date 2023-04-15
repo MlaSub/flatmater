@@ -15,8 +15,11 @@ def get_overview_expenses(filter: dict, db: Session = Depends(get_db), current_u
         models.ExpensesGroupMembers.expenses_group_id == group_id, models.ExpensesGroupMembers.user_id == current_user.id).first()
     personal_total_round = round(personal_total.spent, 2)
     group_total_amount_round = round(group_total_amount.total_amount, 2)
+    pesronal_total_expense_share = round(personal_total.real_expense, 2)
     data = {
         'total_group_expense': group_total_amount_round,
-        'total_personal_expense': personal_total_round
+        'total_personal_expense': personal_total_round,
+        'pesronal_total_expense_share': pesronal_total_expense_share
+
     }
     return data

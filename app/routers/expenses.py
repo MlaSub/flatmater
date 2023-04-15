@@ -1,9 +1,10 @@
-from typing import List, Optional
+from typing import Optional
 from .. import models, schemas, oauth2
-from fastapi import Body, FastAPI, Response, status, HTTPException, Depends, APIRouter
+from fastapi import Response, status, Depends, APIRouter
 from ..database import get_db
 from sqlalchemy.orm import Session
 from ..services import calculation_expenses_per_group_per_member, divisioning
+from ..services.modules.spending_cost_module.expense_group_distribution import update_expense_group_members_spent_realexpense
 
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
@@ -37,11 +38,9 @@ def creat_item(item: schemas.SingleItem, db: Session = Depends(get_db), current_
     elif item.payment_module == 'unequal':
         # do this later
         paying_user = None
-    calculation_expenses_per_group_per_member.update_spent_amount(
-        current_user.id, item.expenses_group_id, db)
+    update_expense_group_members_spent_realexpense(item.expenses_group_id, db)
     calculation_expenses_per_group_per_member.calculate_total_amount_group(
         current_user.id, item.expenses_group_id, db)
-
     return new_item_id
 
 

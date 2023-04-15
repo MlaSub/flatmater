@@ -4,7 +4,7 @@ from ..database import get_db
 from sqlalchemy.orm import Session
 
 
-def current_amount_spent_group(id: int, group: int, db, mode) -> float:
+def current_amount_spent_group(id: int, group: int, db, mode: str) -> float:
     if mode == 'personal':
         expense_query = db.query(models.Expense).filter(
             models.Expense.owner_id == id, models.Expense.expenses_group_id == group).all()
@@ -16,15 +16,6 @@ def current_amount_spent_group(id: int, group: int, db, mode) -> float:
     for i in range(len(expenses_list)):
         all_expenses += expenses_list[i].amount
     return all_expenses
-
-
-def update_spent_amount(id: int, group: int, db):
-    new_spent_calc = current_amount_spent_group(id, group, db, 'personal')
-    old_spent = db.query(models.ExpensesGroupMembers).filter(
-        models.ExpensesGroupMembers.user_id == id, models.ExpensesGroupMembers.expenses_group_id == group)
-    dict = {"spent": new_spent_calc}
-    old_spent.update(dict)
-    db.commit()
 
 
 def calculate_total_amount_group(id: int, group: int, db):
