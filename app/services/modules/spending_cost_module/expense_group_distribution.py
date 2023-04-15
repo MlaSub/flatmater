@@ -1,10 +1,4 @@
-from ....database import get_db
-from ...miscellaneous import object_as_dict
-from sqlalchemy.orm import Session
-from .... import models, oauth2
-from fastapi import Depends, APIRouter
-
-router = APIRouter(prefix="/testiranje", tags=["testiranje"])
+from .... import models
 
 
 def final_amount_real_expense(costs: list) -> dict:
