@@ -56,3 +56,4 @@ class ExpensesGroupMembers(Base):
         "users.id", ondelete="CASCADE"), primary_key=True)
     spent = Column(Float)
     real_expense = Column(Float)
+    debt_distribution = Column(JSON)

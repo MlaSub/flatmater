@@ -1,11 +1,10 @@
 from fastapi import FastAPI
-from .database import engine, SessionLocal
 from . import models
 from .database import engine
 from .routers import expenses_group, users, auth, expenses, overview
-from .services.modules.spending_cost_module import expense_group_distribution
-from .services import calculation_expenses_per_group_per_member
 from fastapi.middleware.cors import CORSMiddleware
+from .services.modules.user_debt import single_membership_debt_per_member
+
 app = FastAPI()
 models.Base.metadata.create_all(bind=engine)
 origins = ["*"]
@@ -25,4 +24,4 @@ app.include_router(expenses_group.router)
 app.include_router(users.router)
 app.include_router(auth.router)
 app.include_router(overview.router)
-app.include_router(expense_group_distribution.router)
+# app.include_router(single_membership_debt_per_member.router)

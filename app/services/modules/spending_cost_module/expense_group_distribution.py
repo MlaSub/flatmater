@@ -46,6 +46,7 @@ def real_expense_update(group_id: int, db) -> None:
 def spent_update(group_id: int, db) -> None:
     # updating ExpensesGroupMembers sprent colomn for each member of the group
     spent_dict = sum_cost_payment(group_id, 'payment', db)
+    print(spent_dict)
     for spent_ind, spent_val in spent_dict.items():
         expense_group_updating_query = db.query(models.ExpensesGroupMembers).filter(
             models.ExpensesGroupMembers.expenses_group_id == group_id, models.ExpensesGroupMembers.user_id == spent_ind)

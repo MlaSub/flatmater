@@ -5,6 +5,7 @@ from ..database import get_db
 from sqlalchemy.orm import Session
 from ..services import calculation_expenses_per_group_per_member, divisioning
 from ..services.modules.spending_cost_module.expense_group_distribution import update_expense_group_members_spent_realexpense
+from ..services.modules.user_debt.single_membership_debt_per_member import setting_per_group_debt_distribution
 
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
@@ -23,24 +24,21 @@ def creat_item(item: schemas.SingleItem, db: Session = Depends(get_db), current_
         paying_user = current_user.id
         divisioning.payment_dividing(
             item.amount, paying_user, db, new_item.id)
-
         divisioning.equal_cost_dividing(
             item.amount, item.expenses_group_id, db, new_item.id, "self", paying_user)
-
     elif item.payment_module == 'equal' or 'someone':
         paying_user = item.payment_user_id
         divisioning.payment_dividing(
             item.amount, paying_user, db, new_item.id)
-
         divisioning.equal_cost_dividing(
             item.amount, item.expenses_group_id, db, new_item.id, "equalsomeone", paying_user)
-
     elif item.payment_module == 'unequal':
-        # do this later
+        # TODO do this later
         paying_user = None
     update_expense_group_members_spent_realexpense(item.expenses_group_id, db)
     calculation_expenses_per_group_per_member.calculate_total_amount_group(
         current_user.id, item.expenses_group_id, db)
+    setting_per_group_debt_distribution(item.expenses_group_id, db)
     return new_item_id
 
 
@@ -67,6 +65,24 @@ def get_item_by_id(id: int, db: Session = Depends(get_db), current_user: int = D
         return expenses_by_group.filter(models.Expense.name.ilike('%' + search + '%')).all()
 
 
+# @ router.delete("/items/{id}")
+# def delete_item(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+#     deleting_item = db.query(models.Expense).filter(
+#         models.Expense.id == id)
+#     deleting_item_filtered = deleting_item.first()
+#     if not deleting_item_filtered:
+#         return {"Sorry, no results!"}
+#     deleting_item_group_id = deleting_item_filtered.expenses_group_id
+#     deleting_item.delete(synchronize_session=False)
+#     db.commit()
+#     update_expense_group_members_spent_realexpense(
+#         deleting_item_filtered.expenses_group_id, db)
+#     calculation_expenses_per_group_per_member.calculate_total_amount_group(
+#         current_user.id, deleting_item_group_id, db)
+#     setting_per_group_debt_distribution(
+#         deleting_item_filtered.expenses_group_id, db)
+#     return Response(status_code=status.HTTP_200_OK)
+
 @ router.delete("/items/{id}")
 def delete_item(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     deleting_item = db.query(models.Expense).filter(
@@ -74,13 +90,17 @@ def delete_item(id: int, db: Session = Depends(get_db), current_user: int = Depe
     deleting_item_filtered = deleting_item.first()
     if not deleting_item_filtered:
         return {"Sorry, no results!"}
-    deleting_item_group_id = deleting_item_filtered.expenses_group_id
+    deleting_item_group_id = getattr(
+        deleting_item_filtered, 'expenses_group_id')
     deleting_item.delete(synchronize_session=False)
     db.commit()
-    calculation_expenses_per_group_per_member.update_spent_amount(
-        current_user.id, deleting_item_group_id, db)
+    print(deleting_item_group_id)
+    # Call the missing functions here
     calculation_expenses_per_group_per_member.calculate_total_amount_group(
         current_user.id, deleting_item_group_id, db)
+    update_expense_group_members_spent_realexpense(deleting_item_group_id, db)
+
+    setting_per_group_debt_distribution(deleting_item_group_id, db)
     return Response(status_code=status.HTTP_200_OK)
 
 

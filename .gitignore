@@ -3,3 +3,7 @@ venv/
 .env
 frontend/
 .DS_Store
+bin/
+lib/
+include/
+pyvenv.cfg
